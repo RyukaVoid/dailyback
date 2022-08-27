@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const clients = require("../app");
 
 router.post("/update_assist", (req, res) => {
     const conn = require("../dbConnector");
@@ -10,8 +11,18 @@ router.post("/update_assist", (req, res) => {
             req.body.id
         ],
         (err, result) => {
-            console.log("Update apsider", req.body.apsde);
             if (err) throw err;
+
+            [...clients.keys()].forEach((c) => {
+                c.send(JSON.stringify({
+                    action: "assisted-updated",
+                    data: {
+                        id: req.body.id,
+                        assist: req.body.assist
+                    }
+                }));
+            });
+
             res.status(200).json({
                 status: "success",
                 result: result

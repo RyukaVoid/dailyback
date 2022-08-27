@@ -27,6 +27,41 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({
     server
 });
+const clients = new Map();
+wss.on('connection', (ws) => {
+    const id = uuidv4();
+    const color = Math.floor(Math.random() * 360);
+    const data = {
+        id,
+        color
+    };
+    
+    clients.set(ws, data);
+    console.log("new user", id);
+    ws.send(JSON.stringify({
+        action: "message",
+        data: "Hello new client!, your id is: " + id
+    }));
+
+    ws.on('message', (messageAsString) => {
+        const message = JSON.parse(messageAsString);
+        const metadata = clients.get(ws);
+
+        message.sender = metadata.id;
+        message.color = metadata.color;
+        const outbound = JSON.stringify(message);
+
+        [...clients.keys()].forEach((c) => {
+            c.send(outbound);
+        });
+    });
+
+    ws.on("close", () => {
+        clients.delete(ws);
+    });
+});
+
+module.exports = clients;
 
 function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -35,6 +70,7 @@ function uuidv4() {
         return v.toString(16);
     });
 }
+
 
 app.use(cors());
 app.use(bodyParser.urlencoded({
