@@ -15,3 +15,11 @@
   - resetAssisted.js (pone assisted = 0 a todos)
 - tengo sueño
 
+## [1.1.0]
+
+### Added
+- Se añade websockets en update_assist, voiceStateUpdate, mandated_apsider
+
+### Updated
+- se actualiza update_assist, voiceStateUpdate, mandated_apsider
+

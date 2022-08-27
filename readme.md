@@ -1,7 +1,7 @@
 # Daily apside Backend con NodeJs #
 
 ## Info
-Backend para la plataforma front end dailyApside mas para la funcionalidad del bot "Andres Cea". el proyecto fue hecho con expressJs, usando librerias como:
+Backend para la plataforma front end dailyApside mas para la funcionalidad del bot "Andres Cea". el proyecto fue hecho con expressJs, las librerias usadas son (mirar package.json):
 - discordJs
 - express
 - mysql
