@@ -1,3 +1,23 @@
+## [1.2.0]
+
+### Added
+- Se añaden 4 nuevos comandos
+- !ready
+- !not-ready
+- !status
+- !commands
+
+### Fixed
+- se añade el prefijo /api a los endpoints del backend
+
+## [1.1.0]
+
+### Added
+- Se añade websockets en update_assist, voiceStateUpdate, mandated_apsider
+
+### Updated
+- se actualiza update_assist, voiceStateUpdate, mandated_apsider
+
 ## [1.0.0]
 ### Added
 - Se inicializa proyecto
@@ -14,12 +34,4 @@
 - se añade cron
   - resetAssisted.js (pone assisted = 0 a todos)
 - tengo sueño
-
-## [1.1.0]
-
-### Added
-- Se añade websockets en update_assist, voiceStateUpdate, mandated_apsider
-
-### Updated
-- se actualiza update_assist, voiceStateUpdate, mandated_apsider
 

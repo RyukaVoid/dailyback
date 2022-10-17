@@ -1,5 +1,9 @@
-const joinChannel = require('./joinChannel');
-const syncUsers = require('./syncUsers');
+const joinChannelCommand = require('./joinChannelCommand');
+const syncUsersCommand = require('./syncUsersCommand');
+const readyCommand = require('./readyCommand');
+const notReadyCommand = require('./notReadyCommand');
+const statusCommand = require('./statusCommand');
+const commandsCommand = require('./commandsCommand');
 
 module.exports = function(message) {
     
@@ -17,12 +21,39 @@ module.exports = function(message) {
 
     switch (command){
         case "sync-users":
-            syncUsers(this.guilds.cache.get(process.env.DAILY_GUILD_ID), this.channels.cache.get(process.env.DAILY_COMMAND_CHANNEL_ID));
+            syncUsersCommand(
+                this.guilds.cache.get(process.env.DAILY_GUILD_ID),
+                this.channels.cache.get(process.env.DAILY_COMMAND_CHANNEL_ID)
+            );
             break;
         case "join-channel":
-            joinChannel(this.channels.cache.get(process.env.DAILY_CHANNEL_ID))
-            break
+            joinChannelCommand(this.channels.cache.get(process.env.DAILY_CHANNEL_ID));
+            break;
+        case "ready":
+            readyCommand(
+                message.author,
+                this.channels.cache.get(process.env.DAILY_COMMAND_CHANNEL_ID)
+            );
+            break;
+        case "not-ready":
+            notReadyCommand(
+                message.author,
+                this.channels.cache.get(process.env.DAILY_COMMAND_CHANNEL_ID)
+            );
+            break;
+        case "status":
+            statusCommand(
+                this.channels.cache.get(process.env.DAILY_COMMAND_CHANNEL_ID)
+            );
+            break;
+        case "commands":
+            commandsCommand(
+                this.channels.cache.get(process.env.DAILY_COMMAND_CHANNEL_ID)
+            )
+            break;
         default:
+            const channel = this.channels.cache.get(process.env.DAILY_COMMAND_CHANNEL_ID)
+            channel.send("Comando no encontrado. Trata de escribir **!commands** para obtener un listado de los comandos disponibles.")
             break;
     }
 }
