@@ -1,3 +1,8 @@
+## [1.2.1]
+
+### Updated
+- Se cambia el orden de listado de apsiders en !status. Primero no asistidos y luego asistidos
+
 ## [1.2.0]
 
 ### Added
