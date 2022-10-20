@@ -12,14 +12,15 @@ module.exports = function (channel) {
                 const notAssisted = result.filter(function(el){return el.assisted === 0})
 
                 response += `__Apsiders en daily:__ **${result.length}**\n\n`
-                response += `=========================\n`
-                response += `:white_check_mark: Apsiders que presentaron **${assisted.length}**\n\n`
-                response += assisted.map((i) => `- ${i.name}`).join("\n")
-                response += `\n=========================\n`
 
                 response += `========================= \n`
                 response += `:x: Apsiders que no han presentado **${notAssisted.length}**\n\n`
                 response += notAssisted.map((i) => `- ${i.name} `).join("\n")
+                response += `\n=========================\n`
+
+                response += `=========================\n`
+                response += `:white_check_mark: Apsiders que presentaron **${assisted.length}**\n\n`
+                response += assisted.map((i) => `- ${i.name}`).join("\n")
                 response += `\n=========================\n`
 
             }else{
