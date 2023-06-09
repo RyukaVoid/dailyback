@@ -1,83 +1,63 @@
 const clients = require("../app");
 
-module.exports = function(oldState, newState) {
-    console.log("--------INICIO--------");
-    console.log("oldState", oldState.channelId);
-    console.log("newState", newState.channelId);
-    console.log("env", process.env.DAILY_CHANNEL_ID);
+const { pool } = require('../dbConnector');
 
-    if (oldState.channelId !== null){
-        if (oldState.channelId !== process.env.DAILY_CHANNEL_ID){
-            console.log("entreif");
+require('dotenv').config();
+
+module.exports = async function(oldState, newState) {
+    console.info("Inicio VoiceStateUpdate");
+    console.debug("oldState", oldState.channelId);
+    console.debug("newState", newState.channelId);
+    console.debug("env", process.env.DAILY_CHANNEL_ID);
+
+    if (oldState.channelId !== null && newState.channelId !== null) {
+        if (oldState.channelId !== process.env.DAILY_CHANNEL_ID ||
+                newState.channelId !== process.env.DAILY_CHANNEL_ID) {
+            console.info("entreif no es daily");
             return;
         }
     }
-
-    if (newState.channelId !== null){
-        if (newState.channelId !== process.env.DAILY_CHANNEL_ID){
-            console.log("entreif");
-            return;
-        }
-    }
-
-    // channel id 1009808290991054982
-    // use the .channelID property (.voice doesn't exist)
-    const conn = require('../dbConnector');
 
     if(oldState.channelId === null) {
-        console.log('a user joined!')
-        console.log('user:', oldState.member.user.id);
+        console.info('un usuario se ha unido al canal daily')
+        console.debug('usuario:', oldState.member.user.id,
+            oldState.member.user.username);
 
-        archiveApsider(conn, 0, oldState.member.user.id, function(apsider){
-            [...clients.keys()].forEach((c) => {
-                c.send(JSON.stringify({
-                    action: "user-joined",
-                    apsider: apsider
-                }));
-            });
+        const apsider = await archiveApsider(pool, 0, oldState.member.user.id);
+        [...clients.keys()].forEach((c) => {
+            c.send(JSON.stringify({
+                action: "user-joined",
+                apsider: apsider
+            }));
         });
 
     } else if (newState.channelId === null) {
-        console.log('a user left!')
-        console.log('user:', newState.member.user.id);
+        console.info('un usuario ha dejado el canal daily')
+        console.debug('usuario:', newState.member.user.id,
+            newState.member.user.username);
 
-        archiveApsider(conn, 1, newState.member.user.id,function(apsider){
-            [...clients.keys()].forEach((c) => {
-                c.send(JSON.stringify({
-                    action: "user-left",
-                    apsider: apsider
-                }));
-            });
+        const apsider = await archiveApsider(pool, 1, newState.member.user.id);
+        [...clients.keys()].forEach((c) => {
+            c.send(JSON.stringify({
+                action: "user-left",
+                apsider: apsider
+            }));
         });
-
     }
-    console.log("--------FIN--------");
+    console.info("fin VoiceStateUpdate");
 }
 
-function archiveApsider(conn, state, user_id, callback) {
-    conn.query(
+async function archiveApsider(pool, state, user_id, callback) {
+    const updateResult = await pool.query(
         "UPDATE apsiders SET archived = ? WHERE id = ?",
-        [
-            state,
-            user_id
-        ],
-        (err, result) => {
-            if (err)
-                throw err;
-            console.log("result", result);
-        }
+        [state,user_id]
     );
-
-    conn.query(
+    console.debug("usuario archivado", updateResult);
+    
+    const selectResult = await pool.query(
         "SELECT * FROM apsiders WHERE id = ?",
-        [
-            user_id
-        ],
-        (err, result) => {
-            if (err)
-                throw err;
-            console.log("result", result);
-            return callback(result[0]);
-        }
+        [user_id]
     );
+    console.debug("usuario obtenido", selectResult);
+    return selectResult[0];
 }

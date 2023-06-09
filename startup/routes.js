@@ -1,13 +1,28 @@
-const express = require("express");
+require('dotenv').config();
 
-const apsiders = require("../routes/get_apsiders");
-const update_assist = require("../routes/update_assist");
-const archive_apsiders = require("../routes/archive_apsider");
-const mandated_apsider = require("../routes/mandated_apsider");
+const archiveApsiders = require("../routes/apsiders/archiveApsider");
+const createApsider = require("../routes/apsiders/createApsider");
+const deleteApider = require("../routes/apsiders/deleteApsider");
+const getApsider = require("../routes/apsiders/getApsider");
+const getApsiders = require("../routes/apsiders/getApsiders");
+// const getApsidersDiscord = require("../routes/apsiders/getApsidersDiscord");
+const mandatedApsider = require("../routes/apsiders/mandatedApsider");
+const resetAssisted = require("../routes/resetAssisted");
+const updateAssist = require("../routes/updateAssist");
 
 module.exports = function(app) {
-    app.use('/api',apsiders);
-    app.use('/api',update_assist);
-    app.use('/api',archive_apsiders);
-    app.use('/api',mandated_apsider);
+    console.info("montando rutas");
+    const API_PREFIX = process.env.API_PREFIX || "/api";
+
+    app.use(API_PREFIX, archiveApsiders);
+    app.use(API_PREFIX, createApsider);
+    app.use(API_PREFIX, deleteApider);
+    app.use(API_PREFIX, getApsider);
+    app.use(API_PREFIX, getApsiders)
+    // app.use(API_PREFIX, getApsidersDiscord);
+    app.use(API_PREFIX, mandatedApsider);
+    app.use(API_PREFIX, resetAssisted);
+    app.use(API_PREFIX, updateAssist);
+
+    console.info("rutas montadas");
 };

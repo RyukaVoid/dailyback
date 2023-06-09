@@ -1,23 +1,15 @@
-const { pool } = require('../../dbConnector');
-const clients = require("../../app");
+const express = require("express");
+const router = express.Router();
+const clients = require("../app");
+const { pool } = require('../dbConnector');
 
-module.exports = async function (autor, channel) {
-    console.info("Inicio readyCommand");
-    
-    const user_id = autor.id
-    console.debug('user_id: ' + user_id);
+router.post("/update_assist", async (req, res) => {
+    console.info("Inicio update_assist");
 
-    const query = `
-        UPDATE apsiders
-            SET assisted = :assisted
-        WHERE id = :id ;
-    `;
+    const query = 'UPDATE apsiders SET assisted = :assisted WHERE id = :id';
     console.debug('query: ' + query);
 
-    const parameters = {
-        assisted: 1,
-        id: user_id,
-    }
+    const parameters = { assisted: req.body.assist, id: req.body.id };
     console.debug('params: ' + parameters);
 
     try {
@@ -34,12 +26,17 @@ module.exports = async function (autor, channel) {
         c.send(JSON.stringify({
             action: "assisted-updated",
             data: {
-                id: user_id,
-                assist: 1
+                id: req.body.id,
+                assist: req.body.assist
             }
         }));
     });
 
-    console.info("Fin readyCommand");
-    channel.send('Asistido correctamente');
-}
+    console.info("Fin update_assist");
+    res.status(200).json({
+        status: "success",
+        result: rows
+    })
+});
+
+module.exports = router;
