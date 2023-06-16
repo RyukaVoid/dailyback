@@ -1,14 +1,15 @@
 const { pool } = require('../../dbConnector');
 const express = require("express");
 const router = express.Router();
+var upload = require("../../middleware/multer")
 
-router.post("/apsider", async (req, res, next) => {
+router.post("/apsider", upload.single("avatar"), async (req, res, next) => {
     console.info("Inicio de create_apsider");
 
     const ID = req.body.id;
     const NAME = req.body.name;
     const EMAIL = req.body.email;
-    const AVATAR = req.body.avatar;
+    const AVATAR = req.file;
     const ASSISTED = 0;
     const MANDATED = 0;
     const ARCHIVED = 1
@@ -16,14 +17,20 @@ router.post("/apsider", async (req, res, next) => {
     console.debug('ID: ' + ID);
     console.debug('NAME: ' + NAME);
     console.debug('EMAIL: ' + EMAIL);
-    console.debug('AVATAR: ' + AVATAR);
+    console.debug('AVATAR:', JSON.stringify(AVATAR));
     
-    if (!ID || !NAME || !EMAIL || !AVATAR) {
+    if (!ID || !NAME || !EMAIL) {
         console.error('ID, NAME, EMAIL o AVATAR esta vacío', req.body);
         return res.status(400).json({
             status: 'error',
             message: 'ID, NAME, EMAIL o AVATAR esta vacío'
         });
+    }
+
+    let avatar_name = "";
+    if (AVATAR) {
+        avatar_name = AVATAR.originalname;
+        console.debug('avatar_name: ' + avatar_name);
     }
 
     const query = `INSERT INTO apsiders (
@@ -48,7 +55,7 @@ router.post("/apsider", async (req, res, next) => {
         id: ID,
         name: NAME,
         email: EMAIL,
-        avatar: AVATAR,
+        avatar: avatar_name,
         assisted: ASSISTED,
         mandated: MANDATED,
         archived: ARCHIVED

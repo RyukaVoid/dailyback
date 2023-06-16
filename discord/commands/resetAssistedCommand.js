@@ -1,5 +1,5 @@
 const { pool } = require('../../dbConnector');
-const clients = require("../../app");
+const notifyAllClients = require('../../utils');
 
 module.exports = async function (channel) {
     console.info("Inicio resetAssisted apsiders");
@@ -8,10 +8,14 @@ module.exports = async function (channel) {
     console.debug('query: ' + query);
 
     const parameters = { assisted: 0 }
-    console.debug('params: ' + parameters);
+    console.debug('parameters:', JSON.stringify(parameters));
 
     try {
-        const [rows] = await pool.query(query, parameters);
+        const [rows] = await pool.query({
+            sql: query,
+            values: parameters,
+            namedPlaceholders: true
+        });
         console.info(`${rows.affectedRows} fila(s) afectada(s)`);
     } catch (err) {
         console.error(`Error en resetAssisted apsiders: ${err.message}`);
@@ -20,11 +24,9 @@ module.exports = async function (channel) {
     }
 
     console.info("Notificando a los clientes");
-    [...clients.keys()].forEach((c) => {
-        c.send(JSON.stringify({
-            action: "resset_assisted_all",
-        }));
-    });
+    notifyAllClients(JSON.stringify({
+        action: "assisted-updated",
+    }));
 
     console.info("Fin resetAssisted apsiders");
     channel.send('Todos los apsiders colocados en **no asistidos** Correctamente');

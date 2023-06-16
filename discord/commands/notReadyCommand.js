@@ -1,5 +1,6 @@
 const { pool } = require('../../dbConnector');
-const clients = require("../../app");
+const { clients } = require("../../app");
+const notifyAllClients = require('../../utils');
 
 module.exports = async function (autor, channel) {
     console.info("Inicio notReadyCommand");
@@ -18,10 +19,15 @@ module.exports = async function (autor, channel) {
         assisted: 0,
         id: user_id,
     };
-    console.debug('params: ' + parameters);
+
+    console.debug('params:', JSON.stringify(parameters));
 
     try {
-        const [rows] = await pool.query(query, parameters);
+        const [rows] = await pool.query({
+            sql: query,
+            values: parameters,
+            namedPlaceholders: true
+        });
         console.info(`${rows.affectedRows} fila(s) afectada(s)`);
     } catch (err) {
         console.error(`Error al actualizar apsiders: ${err.message}`);
@@ -30,15 +36,13 @@ module.exports = async function (autor, channel) {
     }
 
     console.info("Notificando a los clientes");
-    [...clients.keys()].forEach((c) => {
-        c.send(JSON.stringify({
-            action: "assisted-updated",
-            data: {
-                id: user_id,
-                assist: 0
-            }
-        }));
-    });
+    notifyAllClients(JSON.stringify({
+        action: "assisted-updated",
+        data: {
+            id: user_id,
+            assist: 0
+        }
+    }));
 
     console.info("Fin notReadyCommand");
     channel.send('Ausentado correctamente');

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const clients = require("../app");
 const { pool } = require('../dbConnector');
+const notifyAllClients = require('../utils');
 
 router.post("/reset_assisted", async (req, res) => {
     console.info("Inicio reset_assisted");
@@ -10,11 +10,17 @@ router.post("/reset_assisted", async (req, res) => {
     console.debug('query: ' + query);
 
     const parameters = { assisted: 0 };
-    console.debug('params: ' + parameters);
+    console.debug('params:', JSON.stringify(parameters));
 
+    let rows;
     try {
-        const [rows] = await pool.query(query, parameters);
-        console.info(`${rows.affectedRows} fila(s) afectada(s)`);
+        const [results] = await pool.query({
+            sql: query,
+            values: parameters,
+            namedPlaceholders: true
+        });
+        console.info(`${results.affectedRows} fila(s) afectada(s)`);
+        rows = results;
     } catch (err) {
         console.error(`Error al actualizar apsiders: ${err.message}`);
         channel.send(`Error al actualizar apsiders: ${err.message}`);
@@ -22,11 +28,9 @@ router.post("/reset_assisted", async (req, res) => {
     }
 
     console.info("Notificando a los clientes");
-    [...clients.keys()].forEach((c) => {
-        c.send(JSON.stringify({
-            action: "resset_assisted_all",
-        }));
-    });
+    notifyAllClients(JSON.stringify({
+        action: "assisted-updated",
+    }));
 
     console.info("Fin reset_assisted");
     res.status(200).json({

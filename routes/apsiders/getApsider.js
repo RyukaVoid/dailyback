@@ -32,7 +32,8 @@ router.get("/apsider/:id", async (req, res, next) => {
 
     const parameters = {
         id: ID
-    };
+    }
+
     console.debug('parameters: ' + JSON.stringify(parameters));
 
     let rows;

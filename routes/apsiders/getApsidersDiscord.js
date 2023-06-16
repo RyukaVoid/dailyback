@@ -1,4 +1,4 @@
-const { discordClient } = require("../../app");
+var { guildMembers } = require("../../app");
 const { pool } = require('../../dbConnector');
 const express = require("express");
 const router = express.Router();
@@ -6,6 +6,7 @@ require('dotenv').config('../../.env');
 
 router.get("/get-apsiders-discord", async (req, res, next) => {
     console.info("Inicio get-apsiders-discord");
+    console.debug("guildMembers",guildMembers);
 
     const notAdded = req.query.notAdded || false;
     console.debug('notAdded: ' + notAdded);
@@ -13,18 +14,8 @@ router.get("/get-apsiders-discord", async (req, res, next) => {
     const SERVER_ID = process.env.DAILY_GUILD_ID;
     console.debug('SERVER_ID: ' + SERVER_ID);
 
-    const guild = discordClient.guilds.cache.get(SERVER_ID);
-    console.debug('guild: ' + guild);
-    if (!guild) {
-        console.error('No se ha encontrado el servidor');
-        return res.status(400).json({
-            status: 'error',
-            message: 'No se ha encontrado el servidor'
-        });
-    }
-
-    let members = channel.members;
     console.debug('members: ' + members);
+    let members;
 
     if (notAdded) {
         console.info('Filtrando miembros no añadidos');
@@ -44,7 +35,7 @@ router.get("/get-apsiders-discord", async (req, res, next) => {
         }
         console.debug('membersAddedIds: ' + membersAddedIds);
 
-        members = members.filter(
+        members = guildMembers.filter(
             member => !membersAddedIds.includes(member.id));
     }
 

@@ -1,37 +1,28 @@
-const multer = require("multer");
-const { randomBytes } = require("crypto");
-const dotenv = require('dotenv');
-dotenv.config({ path: './.env' });
+var multer = require("multer")
+require('dotenv').config('./.env');
 
-console.info("inicio multer.js");
+custom_destination = process.env.DEFAULT_DESTINATION || '';
+var destination = "./public/" + custom_destination;
 
-const DEFAULT_FILE_LOCATION = process.env.DEFAULT_DESTINATION || "images";
-
-console.debug('DEFAULT_FILE_LOCATION: ', DEFAULT_FILE_LOCATION);
-
-const fileStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, DEFAULT_FILE_LOCATION);
-  },
-  filename: (req, file, cb) => {
-    cb(null, randomBytes(4).toString("hex") + "-" + file.originalname);
-  },
-});
-
-console.debug('fileStorage: ', JSON.stringify(fileStorage));
-
-const fileFilter = (req, file, cb) => {
-  if (
-    file.mimetype === "image/png" ||
-    file.mimetype === "image/jpg" ||
-    file.mimetype === "image/jpeg"
-  ) {
+function fileFilter(req, file, cb) {
+    if (file.mimetype !== "image/jpeg") {
+        return cb(new Error("Solo se permiten archivos jpeg"))
+    }
     cb(null, true);
-  } else {
-    cb(null, false);
-  }
-};
+}
 
-console.debug('fileFilter: ', JSON.stringify(fileFilter));
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, destination)
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname)
+    }
+})
 
-module.exports = multer({ storage: fileStorage, fileFilter }).single("image");
+var upload = multer({
+    fileFilter: fileFilter,
+    storage: storage
+})
+
+module.exports = upload;

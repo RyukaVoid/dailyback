@@ -1,6 +1,7 @@
-const clients = require("../app");
-
 const { pool } = require('../dbConnector');
+const { DateTime } = require("luxon");
+
+const notifyAllClients = require('../utils');
 
 require('dotenv').config();
 
@@ -24,12 +25,19 @@ module.exports = async function(oldState, newState) {
             oldState.member.user.username);
 
         const apsider = await archiveApsider(pool, 0, oldState.member.user.id);
-        [...clients.keys()].forEach((c) => {
-            c.send(JSON.stringify({
-                action: "user-joined",
-                apsider: apsider
-            }));
-        });
+
+        notifyAllClients(JSON.stringify({
+            action: "user-joined",
+            apsider: apsider
+        }));
+
+        const success = await markAttendance(apsider);
+
+        if (success) {
+            console.info('asistencia marcada para', apsider.name, apsider.id);
+        }else{
+            console.error('error al marcar asistencia para', apsider.name, apsider.id);
+        }
 
     } else if (newState.channelId === null) {
         console.info('un usuario ha dejado el canal daily')
@@ -37,27 +45,75 @@ module.exports = async function(oldState, newState) {
             newState.member.user.username);
 
         const apsider = await archiveApsider(pool, 1, newState.member.user.id);
-        [...clients.keys()].forEach((c) => {
-            c.send(JSON.stringify({
-                action: "user-left",
-                apsider: apsider
-            }));
-        });
+        notifyAllClients(JSON.stringify({
+            action: "user-left",
+            apsider: apsider
+        }));
     }
     console.info("fin VoiceStateUpdate");
 }
 
 async function archiveApsider(pool, state, user_id, callback) {
-    const updateResult = await pool.query(
+    const [updateResult] = await pool.query(
         "UPDATE apsiders SET archived = ? WHERE id = ?",
         [state,user_id]
     );
-    console.debug("usuario archivado", updateResult);
+    console.debug("usuario archived updated",
+        state, updateResult.affectedRows);
     
-    const selectResult = await pool.query(
+    const [selectResult] = await pool.query(
         "SELECT * FROM apsiders WHERE id = ?",
         [user_id]
     );
     console.debug("usuario obtenido", selectResult);
     return selectResult[0];
+}
+
+async function markAttendance(apsider){
+    console.info("Inicio de mark-attendance");
+
+    const APSIDER_ID = apsider.id;
+
+    console.debug('APSIDER_ID: ' + APSIDER_ID);
+
+    const fecha = DateTime.now()
+                .setZone('America/Santiago').toFormat('yyyy-MM-dd');
+    const hora = DateTime.now()
+                .setZone('America/Santiago').toFormat('HH:mm:ss');
+
+    console.debug('fechaHoraHoy: ', fecha + ' ' + hora);
+
+    const query = `INSERT IGNORE INTO asistencias (
+            apsider_id,
+            fecha,
+            hora
+        ) VALUES (
+            :apsider_id,
+            :fecha,
+            :hora
+        )
+    `;
+    console.debug('query: ', query);
+
+    const parameters = {
+        apsider_id: APSIDER_ID,
+        fecha: fecha,
+        hora: hora
+    };
+    console.debug('parameters:', JSON.stringify(parameters));
+
+    try {
+        const [rows] = await pool.query({
+            sql: query,
+            values: parameters,
+            namedPlaceholders: true
+        });
+        console.info(`${rows.affectedRows} fila(s) afectada(s).`);
+    } catch (err) {
+        console.error(`Error: ${err.message}`);
+        return false
+    }
+
+    console.info("Fin de mark-attendance");
+    return true
 }

@@ -1,5 +1,5 @@
 const { pool } = require('../../dbConnector');
-const clients = require("../../app");
+const notifyAllClients = require('../../utils');
 
 module.exports = async function (autor, channel) {
     console.info("Inicio readyCommand");
@@ -30,15 +30,13 @@ module.exports = async function (autor, channel) {
     }
 
     console.info("Notificando a los clientes");
-    [...clients.keys()].forEach((c) => {
-        c.send(JSON.stringify({
-            action: "assisted-updated",
-            data: {
-                id: user_id,
-                assist: 1
-            }
-        }));
-    });
+    notifyAllClients(JSON.stringify({
+        action: "assisted-updated",
+        data: {
+            id: user_id,
+            assist: 1
+        }
+    }));
 
     console.info("Fin readyCommand");
     channel.send('Asistido correctamente');
