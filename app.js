@@ -186,17 +186,7 @@ const discordClient = new Client({
 });
 
 require('./discord/index')(discordClient);
-let guildMembers = [];
-discordClient.on('ready', () => {
-    const SERVER_ID = process.env.DAILY_GUILD_ID;
-    guild = discordClient.guilds.cache.get(SERVER_ID);
-
-    guild.members.fetch().then((members) => {
-        guildMembers = members;
-    });
-});
-
-exports.guildMembers = guildMembers;
+exports.discordClient = discordClient;
 
 // module.exports = {
 //     clients: clients,

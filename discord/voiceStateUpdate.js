@@ -31,13 +31,15 @@ module.exports = async function(oldState, newState) {
             apsider: apsider
         }));
 
-        const success = await markAttendance(apsider);
-
-        if (success) {
-            console.info('asistencia marcada para', apsider.name, apsider.id);
-        }else{
-            console.error('error al marcar asistencia para', apsider.name, apsider.id);
+        if (apsider !== undefined) {
+            const success = await markAttendance(apsider);
+            if (success) {
+                console.info('asistencia marcada para', apsider.name, apsider.id);
+            }else{
+                console.error('error al marcar asistencia para', apsider.name, apsider.id);
+            }
         }
+
 
     } else if (newState.channelId === null) {
         console.info('un usuario ha dejado el canal daily')
