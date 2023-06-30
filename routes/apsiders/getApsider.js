@@ -27,7 +27,7 @@ router.get("/apsider/:id", async (req, res, next) => {
     }
 
     const query = `SELECT * FROM apsiders 
-        WHERE id = :id`;
+        WHERE id = :id AND disabled = 0`;
     console.debug('query: ' + query);
 
     const parameters = {

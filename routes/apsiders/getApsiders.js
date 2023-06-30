@@ -5,7 +5,7 @@ const { pool } = require('../../dbConnector');
 router.get("/get-apsiders", async (req, res, next) => {
     console.info("Inicio get-apsiders");
 
-    const query = 'SELECT * FROM apsiders';
+    const query = 'SELECT * FROM apsiders WHERE disabled = 0';
     console.debug('query: ' + query);
 
     let rows;

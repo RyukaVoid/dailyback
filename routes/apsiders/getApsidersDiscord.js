@@ -13,36 +13,36 @@ router.get("/get-apsiders-discord", async (req, res, next) => {
     console.debug('SERVER_ID: ' + SERVER_ID);
 
     const guild = discordClient.guilds.cache.get(SERVER_ID);
-    var members = await guild.members.fetch();
+    let members = await guild.members.fetch();
     members = Array.from(members, ([name, value]) => ({ name, value }));
     members = members.map(member => member.value);
 
-    const notAdded = req.query.notAdded || false;
-    console.debug('notAdded: ' + notAdded);
+    let membersAddedIds;
+    let membersAdded;
+    try{
+        const [rows] = await pool.query('SELECT * FROM apsiders');
+        membersAdded = rows;
+        membersAddedIds = rows.map(member => member.id);
+        console.debug('membersAdded:', JSON.stringify(membersAddedIds));
 
-    if (notAdded) {
-        console.info('Filtrando miembros no añadidos');
-
-        let membersAddedIds;
-        try{
-            const [membersAdded] = await pool.query('SELECT id FROM apsiders');
-            membersAddedIds = membersAdded.map(member => member.id);
-            console.debug('membersAdded:', JSON.stringify(membersAddedIds));
-
-        } catch (err) {
-            console.error(`Error al obtener apsiders: ${err.message}`);
-            return res.status(500).json({
-                status: 'error',
-                message: 'Error al obtener apsiders.'
-            });
-        }
-
-        members = members.filter((member) => 
-            !membersAddedIds.includes(member.id));
-        console.debug('members:', JSON.stringify(members));
+    } catch (err) {
+        console.error(`Error al obtener apsiders: ${err.message}`);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Error al obtener apsiders.'
+        });
     }
 
-    members = members.filter((member)=>member.guild.id === SERVER_ID);
+    console.info('Filtrando miembros que estan en la base de datos');
+
+    members = members.filter(member => 
+        member.guild.id === SERVER_ID && !member.user.bot);
+    console.debug('members:', JSON.stringify(members));
+
+    membersClone = JSON.parse(JSON.stringify(members));
+
+    members = members.filter((member) => 
+        !membersAddedIds.includes(member.id));
     console.debug('members:', JSON.stringify(members));
 
     const membersResponse = members.map(member => {
@@ -56,8 +56,11 @@ router.get("/get-apsiders-discord", async (req, res, next) => {
     console.info("fin de get-apsiders-discord");
     return res.status(200).json({
         status: "success",
-        length: membersResponse?.length,
-        result: membersResponse
+        notInServer: membersResponse,
+        notInServerLength: membersResponse?.length,
+        inServer: membersAdded,
+        inServerLength: membersAdded?.length,
+        membersInDiscordLength: membersClone?.length,
     });
 });
 
