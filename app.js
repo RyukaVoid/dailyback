@@ -81,56 +81,56 @@ console.info("Montando rutas");
 require('./startup/routes')(app);
 
 // Despliegue
-const HTTP_SERVER_PORT = process.env.HTTP_SERVER_PORT || 8999;
-const HTTP_SERVER_IP = process.env.HTTP_SERVER_IP || 'localhost';
-console.debug('PORT: ' + HTTP_SERVER_PORT);
-console.debug('IP: ' + HTTP_SERVER_IP);
+// const HTTP_SERVER_PORT = process.env.HTTP_SERVER_PORT || 8999;
+// const HTTP_SERVER_IP = process.env.HTTP_SERVER_IP || 'localhost';
+// console.debug('PORT: ' + HTTP_SERVER_PORT);
+// console.debug('IP: ' + HTTP_SERVER_IP);
 
-console.info("Desplegando servidor");
+// console.info("Desplegando servidor");
 
-const httpServer = http.createServer(app).listen(
-    HTTP_SERVER_PORT, HTTP_SERVER_IP, () => {
-    console.log(`
-        Servidor inicializado en http://${HTTP_SERVER_IP}:${HTTP_SERVER_PORT}
-    `);
-});
-
-listRoutes(app, 'http', HTTP_SERVER_IP, HTTP_SERVER_PORT);
-
-// const PATH_TO_KEY = process.env.PATH_TO_KEY || './key.pem';
-// const PATH_TO_CERT = process.env.PATH_TO_CERT || './cert.pem';
-// const PATH_TO_CSR = process.env.PATH_TO_CA || './csr.pem';
-// console.debug('PATH_TO_KEY: ' + PATH_TO_KEY);
-// console.debug('PATH_TO_CERT: ' + PATH_TO_CERT);
-// console.debug('PATH_TO_CA: ' + PATH_TO_CSR);
-
-// const credentials = {
-//     key: fs.readFileSync(PATH_TO_KEY, 'utf8'),
-//     cert: fs.readFileSync(PATH_TO_CERT, 'utf8'),
-//     ca: fs.readFileSync(PATH_TO_CSR)
-// };
-
-// if (!PATH_TO_KEY || !PATH_TO_CERT || !PATH_TO_CSR) {
-//     console.error('No se ha encontrado la ruta al certificado o la clave privada');
-// }
-
-// const HTTPS_SERVER_IP = process.env.HTTPS_SERVER_IP || 'localhost';
-// const HTTPS_SERVER_PORT = process.env.HTTPS_SERVER_PORT || 8998;
-
-// console.debug('HTTPS_SERVER_IP: ' + HTTPS_SERVER_IP);
-// console.debug('HTTPS_SERVER_PORT: ' + HTTPS_SERVER_PORT);
-
-// listRoutes(app, 'https', HTTPS_SERVER_IP, HTTPS_SERVER_PORT);
-
-// const httpsServer = https.createServer(credentials,app
-//     ).listen(HTTPS_SERVER_PORT, HTTPS_SERVER_IP, () => {
-//         console.log(`
-//             Servidor inicializado en https://${HTTPS_SERVER_IP}:${HTTPS_SERVER_PORT}
-//         `);
+// const httpServer = http.createServer(app).listen(
+//     HTTP_SERVER_PORT, HTTP_SERVER_IP, () => {
+//     console.log(`
+//         Servidor inicializado en http://${HTTP_SERVER_IP}:${HTTP_SERVER_PORT}
+//     `);
 // });
 
+// listRoutes(app, 'http', HTTP_SERVER_IP, HTTP_SERVER_PORT);
+
+const PATH_TO_KEY = process.env.PATH_TO_KEY || './key.pem';
+const PATH_TO_CERT = process.env.PATH_TO_CERT || './cert.pem';
+const PATH_TO_CSR = process.env.PATH_TO_CA || './csr.pem';
+console.debug('PATH_TO_KEY: ' + PATH_TO_KEY);
+console.debug('PATH_TO_CERT: ' + PATH_TO_CERT);
+console.debug('PATH_TO_CA: ' + PATH_TO_CSR);
+
+const credentials = {
+    key: fs.readFileSync(PATH_TO_KEY, 'utf8'),
+    cert: fs.readFileSync(PATH_TO_CERT, 'utf8'),
+    ca: fs.readFileSync(PATH_TO_CSR)
+};
+
+if (!PATH_TO_KEY || !PATH_TO_CERT || !PATH_TO_CSR) {
+    console.error('No se ha encontrado la ruta al certificado o la clave privada');
+}
+
+const HTTPS_SERVER_IP = process.env.HTTPS_SERVER_IP || 'localhost';
+const HTTPS_SERVER_PORT = process.env.HTTPS_SERVER_PORT || 8998;
+
+console.debug('HTTPS_SERVER_IP: ' + HTTPS_SERVER_IP);
+console.debug('HTTPS_SERVER_PORT: ' + HTTPS_SERVER_PORT);
+
+listRoutes(app, 'https', HTTPS_SERVER_IP, HTTPS_SERVER_PORT);
+
+const httpsServer = https.createServer(credentials,app
+    ).listen(HTTPS_SERVER_PORT, HTTPS_SERVER_IP, () => {
+        console.log(`
+            Servidor inicializado en https://${HTTPS_SERVER_IP}:${HTTPS_SERVER_PORT}
+        `);
+});
+
 console.info("Inicializando WebSocket server");
-const wss = new WebSocket.Server({ server: httpServer });
+const wss = new WebSocket.Server({ server: httpsServer });
 
 const clients = new Map();
 wss.on('connection', (ws) => {
