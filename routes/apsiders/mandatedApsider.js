@@ -1,3 +1,4 @@
+var app = require("../../app");
 const express = require("express");
 const router = express.Router();
 const { pool } = require('../../dbConnector');
@@ -105,6 +106,21 @@ router.post("/mandated_apsider", async (req, res, next) => {
         if (connection) {
             connection.release();
         }
+    }
+
+    // notificar por el servidor de eventos
+    const discordClient = app.discordClient;
+
+    if (discordClient) {
+
+        const DAILY_TEXT_CHANNEL_ID = process.env.DAILY_TEXT_CHANNEL_ID || 0;
+        console.debug('DAILY_CHANNEL_ID: ' + DAILY_TEXT_CHANNEL_ID);
+
+        const DAILY_CHANNEL = discordClient.channels.cache.get(DAILY_TEXT_CHANNEL_ID);
+
+        DAILY_CHANNEL.send(`Felicidades @${apsider[0].name}, azotado!`,
+            {files:["http://localhost:8999/apsiders/" + apsider.avatar]}
+        );
     }
 
     console.info("Fin mandated_apsider");

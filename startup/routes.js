@@ -16,6 +16,8 @@ const mandatedApsider = require("../routes/apsiders/mandatedApsider");
 const resetAssisted = require("../routes/resetAssisted");
 const updateAssist = require("../routes/updateAssist");
 const markAttendance = require("../routes/markAttendance");
+const getAsistenciasApsiders = require("../routes/apsiders/getAsistenciasApsiders");
+const getAsistenciaApsider = require("../routes/apsiders/getAsistenciaApsider");
 
 // charts
 const mostAssistedApsiders = require("../routes/charts/mostAssistedApsiders");
@@ -47,6 +49,8 @@ module.exports = function(app) {
     app.use(API_PREFIX, auth, arriveOnTime);
     app.use(API_PREFIX, auth, notArriveOnTime);
     app.use(API_PREFIX, auth, howManyAssists);
+    app.use(API_PREFIX, auth, getAsistenciasApsiders);
+    app.use(API_PREFIX, auth, getAsistenciaApsider);
     
     console.info("rutas montadas");
 };

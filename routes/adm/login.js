@@ -78,6 +78,8 @@ router.post("/adm/login", async (req, res, next) => {
         { expiresIn: '7d' }
     );
 
+    const decodedToken = JSON.parse(
+        Buffer.from(token.split('.')[1], 'base64').toString());
     console.info("fin adm_login");
 
     res.status(200).json({
@@ -86,7 +88,7 @@ router.post("/adm/login", async (req, res, next) => {
         token: token,
         type : 'Bearer',
         user: user,
-        expiration: 7 * 24 * 60 * 60 * 1000
+        expiration: decodedToken.exp
     });
 });
 
