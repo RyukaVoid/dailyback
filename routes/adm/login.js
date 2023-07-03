@@ -72,10 +72,12 @@ router.post("/adm/login", async (req, res, next) => {
         throw new Error('JWT_TOKEN_SECRET not defined');
     }
 
+    const jwtTokenExpiration = process.env.JWT_TOKEN_EXPIRATION || '7d';
+
     const token = jwt.sign(
         { userId: user.id },
         JWT_TOKEN_SECRET,
-        { expiresIn: '7d' }
+        { expiresIn: jwtTokenExpiration }
     );
 
     const decodedToken = JSON.parse(

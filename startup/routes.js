@@ -18,6 +18,7 @@ const updateAssist = require("../routes/updateAssist");
 const markAttendance = require("../routes/markAttendance");
 const getAsistenciasApsiders = require("../routes/apsiders/getAsistenciasApsiders");
 const getAsistenciaApsider = require("../routes/apsiders/getAsistenciaApsider");
+const bugReport = require("../routes/bugReport");
 
 // charts
 const mostAssistedApsiders = require("../routes/charts/mostAssistedApsiders");
@@ -42,6 +43,7 @@ module.exports = function(app) {
     app.use(API_PREFIX, resetAssisted);
     app.use(API_PREFIX, updateAssist);
     app.use(API_PREFIX, markAttendance);
+    app.use(API_PREFIX, bugReport);
     
     app.use(API_PREFIX, auth, getApsidersDiscord);
     app.use(API_PREFIX, auth, mostAssistedApsiders);
