@@ -1,11 +1,13 @@
 const { joinVoiceChannel } = require('@discordjs/voice');
 
 module.exports = function (channel) {
-    if (!channel) return console.error("The channel does not exist!");
-    const connection = joinVoiceChannel({
+    console.info("Inicio joinChannelCommand");
+    if (!channel) return console.error("El canal no existe!");
+
+    joinVoiceChannel({
         channelId: channel.id,
         guildId: channel.guild.id,
         adapterCreator: channel.guild.voiceAdapterCreator,
     });
-
+    console.info("Fin joinChannelCommand");
 }

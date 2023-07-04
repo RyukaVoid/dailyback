@@ -1,83 +1,121 @@
-const clients = require("../app");
+const { pool } = require('../dbConnector');
+const { DateTime } = require("luxon");
 
-module.exports = function(oldState, newState) {
-    console.log("--------INICIO--------");
-    console.log("oldState", oldState.channelId);
-    console.log("newState", newState.channelId);
-    console.log("env", process.env.DAILY_CHANNEL_ID);
+const notifyAllClients = require('../utils');
 
-    if (oldState.channelId !== null){
-        if (oldState.channelId !== process.env.DAILY_CHANNEL_ID){
-            console.log("entreif");
+require('dotenv').config();
+
+module.exports = async function(oldState, newState) {
+    console.info("Inicio VoiceStateUpdate");
+    console.debug("oldState", oldState.channelId);
+    console.debug("newState", newState.channelId);
+    console.debug("env", process.env.DAILY_CHANNEL_ID);
+
+    if (oldState.channelId !== null && newState.channelId !== null) {
+        if (oldState.channelId !== process.env.DAILY_CHANNEL_ID ||
+                newState.channelId !== process.env.DAILY_CHANNEL_ID) {
+            console.info("entreif no es daily");
             return;
         }
     }
-
-    if (newState.channelId !== null){
-        if (newState.channelId !== process.env.DAILY_CHANNEL_ID){
-            console.log("entreif");
-            return;
-        }
-    }
-
-    // channel id 1009808290991054982
-    // use the .channelID property (.voice doesn't exist)
-    const conn = require('../dbConnector');
 
     if(oldState.channelId === null) {
-        console.log('a user joined!')
-        console.log('user:', oldState.member.user.id);
+        console.info('un usuario se ha unido al canal daily')
+        console.debug('usuario:', oldState.member.user.id,
+            oldState.member.user.username);
 
-        archiveApsider(conn, 0, oldState.member.user.id, function(apsider){
-            [...clients.keys()].forEach((c) => {
-                c.send(JSON.stringify({
-                    action: "user-joined",
-                    apsider: apsider
-                }));
-            });
-        });
+        const apsider = await archiveApsider(pool, 0, oldState.member.user.id);
+
+        notifyAllClients(JSON.stringify({
+            action: "user-joined",
+            apsider: apsider
+        }));
+
+        if (apsider !== undefined) {
+            const success = await markAttendance(apsider);
+            if (success) {
+                console.info('asistencia marcada para', apsider.name, apsider.id);
+            }else{
+                console.error('error al marcar asistencia para', apsider.name, apsider.id);
+            }
+        }
+
 
     } else if (newState.channelId === null) {
-        console.log('a user left!')
-        console.log('user:', newState.member.user.id);
+        console.info('un usuario ha dejado el canal daily')
+        console.debug('usuario:', newState.member.user.id,
+            newState.member.user.username);
 
-        archiveApsider(conn, 1, newState.member.user.id,function(apsider){
-            [...clients.keys()].forEach((c) => {
-                c.send(JSON.stringify({
-                    action: "user-left",
-                    apsider: apsider
-                }));
-            });
-        });
-
+        const apsider = await archiveApsider(pool, 1, newState.member.user.id);
+        notifyAllClients(JSON.stringify({
+            action: "user-left",
+            apsider: apsider
+        }));
     }
-    console.log("--------FIN--------");
+    console.info("fin VoiceStateUpdate");
 }
 
-function archiveApsider(conn, state, user_id, callback) {
-    conn.query(
+async function archiveApsider(pool, state, user_id, callback) {
+    const [updateResult] = await pool.query(
         "UPDATE apsiders SET archived = ? WHERE id = ?",
-        [
-            state,
-            user_id
-        ],
-        (err, result) => {
-            if (err)
-                throw err;
-            console.log("result", result);
-        }
+        [state,user_id]
     );
-
-    conn.query(
+    console.debug("usuario archived updated",
+        state, updateResult.affectedRows);
+    
+    const [selectResult] = await pool.query(
         "SELECT * FROM apsiders WHERE id = ?",
-        [
-            user_id
-        ],
-        (err, result) => {
-            if (err)
-                throw err;
-            console.log("result", result);
-            return callback(result[0]);
-        }
+        [user_id]
     );
+    console.debug("usuario obtenido", selectResult);
+    return selectResult[0];
+}
+
+async function markAttendance(apsider){
+    console.info("Inicio de mark-attendance");
+
+    const APSIDER_ID = apsider.id;
+
+    console.debug('APSIDER_ID: ' + APSIDER_ID);
+
+    const fecha = DateTime.now()
+                .setZone('America/Santiago').toFormat('yyyy-MM-dd');
+    const hora = DateTime.now()
+                .setZone('America/Santiago').toFormat('HH:mm:ss');
+
+    console.debug('fechaHoraHoy: ', fecha + ' ' + hora);
+
+    const query = `INSERT IGNORE INTO asistencias (
+            apsider_id,
+            fecha,
+            hora
+        ) VALUES (
+            :apsider_id,
+            :fecha,
+            :hora
+        )
+    `;
+    console.debug('query: ', query);
+
+    const parameters = {
+        apsider_id: APSIDER_ID,
+        fecha: fecha,
+        hora: hora
+    };
+    console.debug('parameters:', JSON.stringify(parameters));
+
+    try {
+        const [rows] = await pool.query({
+            sql: query,
+            values: parameters,
+            namedPlaceholders: true
+        });
+        console.info(`${rows.affectedRows} fila(s) afectada(s).`);
+    } catch (err) {
+        console.error(`Error: ${err.message}`);
+        return false
+    }
+
+    console.info("Fin de mark-attendance");
+    return true
 }
