@@ -5,6 +5,7 @@ custom_destination = process.env.DEFAULT_DESTINATION || '';
 var destination = "./public/" + custom_destination;
 
 function fileFilter(req, file, cb) {
+    console.log("filetype:",  file.mimetype)
     if (file.mimetype !== "image/jpg") {
         return cb(new Error("Solo se permiten archivos jpg"))
     }

@@ -11,50 +11,54 @@ router.post("/mandated_apsider", async (req, res, next) => {
     console.info("Inicio mandated_apsider");
 
     const MANDATED_ID = req.body.id;
+    const GROUP_ID = req.body.groupId;
 
-    if (!MANDATED_ID) {
-        console.error('id esta vacío', req.body);
+    if (!MANDATED_ID || !GROUP_ID) {
+        console.error('id o grupo esta vacío', req.body);
         return res.status(400).json({
             status: 'error',
-            message: 'id esta vacío'
+            message: 'id o grupo esta vacío'
         });
     }
 
     const QUERY_MANDATED = `
         UPDATE apsiders 
             SET mandated = :set_mandated 
-        WHERE mandated = :new_mandated
+        WHERE mandated = :new_mandated AND grupo_id = :groupId
     `;
     console.debug('QUERY_MANDATED: ' + QUERY_MANDATED);
 
     const PARAMS_MANDATED = {
         set_mandated: 0,
-        new_mandated: 1
+        new_mandated: 1,
+        groupId: GROUP_ID
     };
     console.debug('PARAMS_MANDATED:', JSON.stringify(PARAMS_MANDATED));
 
     const QUERY_APSIDER_MANDATED = `
         UPDATE apsiders 
             SET mandated = :mandated
-        WHERE id = :id
+        WHERE id = :id AND grupo_id = :groupId
     `;
     console.debug('QUERY_APSIDER_MANDATED: ' + QUERY_APSIDER_MANDATED);
 
     const PARAMS_APSIDER_MANDATED = {
         mandated: 1,
-        id: MANDATED_ID
+        id: MANDATED_ID,
+        groupId: GROUP_ID
     }
     console.debug('PARAMS_APSIDER_MANDATED:',
         JSON.stringify(PARAMS_APSIDER_MANDATED));
 
     const QUERY_SELECT_APSIDER = `
         SELECT * FROM apsiders 
-            WHERE id = :id
+            WHERE id = :id AND grupo_id = :groupId
     `;
     console.debug('QUERY_SELECT_APSIDER: ' + QUERY_SELECT_APSIDER);
 
     const PARAMS_SELECT_APSIDER = {
-        id: MANDATED_ID
+        id: MANDATED_ID,
+        groupId: GROUP_ID
     };
     console.debug('PARAMS_SELECT_APSIDER:', JSON.stringify(PARAMS_SELECT_APSIDER));
 
@@ -118,8 +122,10 @@ router.post("/mandated_apsider", async (req, res, next) => {
 
         const DAILY_CHANNEL = discordClient.channels.cache.get(DAILY_TEXT_CHANNEL_ID);
 
-        DAILY_CHANNEL.send(`Felicidades @${apsider[0].name}, azotado!`,
-            {files:["http://localhost:8999/apsiders/" + apsider.avatar]}
+        const USER = await DAILY_CHANNEL.guild.members.fetch(apsider[0].id);
+
+        DAILY_CHANNEL.send(`Felicidades ${USER}, has sido azotado! <:latigo:1126241611668537344>\n ` 
+            + USER.user.avatarURL(),
         );
     }
 
