@@ -130,7 +130,7 @@ router.post("/mandated_apsider", async (req, res, next) => {
     }
 
     console.info("Fin mandated_apsider");
-    res.status(200).json({
+    return res.status(200).json({
         status: "success",
         result: apsider
     });

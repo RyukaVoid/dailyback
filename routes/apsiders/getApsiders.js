@@ -43,7 +43,7 @@ router.get("/get-apsiders", async (req, res, next) => {
     }
 
     console.info("Fin get-apsiders");
-    res.status(200).json({
+    return res.status(200).json({
         status: "success",
         length: rows?.length,
         result: rows

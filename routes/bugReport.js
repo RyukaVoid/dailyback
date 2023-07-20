@@ -22,14 +22,14 @@ router.post("/bug-report", async (req, res, next) => {
         );
     }).catch((err) => {
         console.error("Error al obtener usuario de discord", err);
-        res.status(500).json({
+        return res.status(500).json({
             status: 'error',
             message: 'Error al enviar reporte de bug'
         });
     });
 
     console.info("fin bug-report");
-    res.status(200).json({
+    return res.status(200).json({
         status: 'success',
         message: 'Reporte enviado correctamente',
     });

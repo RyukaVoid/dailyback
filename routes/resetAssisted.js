@@ -33,7 +33,7 @@ router.post("/reset_assisted", async (req, res) => {
     }));
 
     console.info("Fin reset_assisted");
-    res.status(200).json({
+    return res.status(200).json({
         status: "success",
         result: rows
     })

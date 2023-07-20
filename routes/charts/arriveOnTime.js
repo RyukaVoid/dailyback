@@ -71,7 +71,7 @@ router.get("/arriveOnTime", async (req, res, next) => {
         }
     });
     
-    res.status(200).json({
+    return res.status(200).json({
         status: 'success',
         message: 'Datos obtenido correctamente',
         data: rows,

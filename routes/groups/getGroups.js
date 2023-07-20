@@ -5,10 +5,7 @@ const { pool } = require('../../dbConnector');
 router.get("/groups", async (req, res, next) => {
     console.info("Inicio get-groups");
 
-    const query = `SELECT g.id, g.name, GROUP_CONCAT(a.name) as apsiders FROM grupos g
-    INNER JOIN apsiders a ON g.id = a.grupo_id
-    GROUP BY g.id
-    ORDER BY g.id ASC;`;
+    const query = `SELECT * FROM grupos;`;
     console.debug('query: ' + query);
 
     let rows;
@@ -25,22 +22,37 @@ router.get("/groups", async (req, res, next) => {
         });
     }
 
-    if (rows.length !== 0) {
-        rows = rows.map(row => {
-            return {
-                id: row.id,
-                name: row.name,
-                apsiders: row.apsiders.split(',') || []
-            }
+    if (rows.length === 0) {
+        return res.status(200).json({
+            status: "empty",
+            message: "no hay grupos para listar"
         });
     }
 
+    let grupos = [];
+    for (const grupoRow of rows) {
+        const grupo = {
+            id: grupoRow.id,
+            name: grupoRow.name,
+            channelId: grupoRow.channel_id,
+            apsiders: [],
+        };
+
+        const [usersRows] = await pool.query(
+            'SELECT * FROM apsiders WHERE grupo_id = ? AND disabled = ?',
+            [grupo.id, 0]);
+        
+        grupo.apsiders = usersRows;
+
+        grupos.push(grupo);
+    }
+
     console.info("Fin get-groups");
-    res.status(200).json({
+    return res.status(200).json({
         status: "success",
-        length: rows?.length,
-        result: rows
-    })
+        length: grupos?.length,
+        result: grupos
+    });
 });
 
 module.exports = router;
