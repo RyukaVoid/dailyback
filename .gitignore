@@ -14,3 +14,8 @@ benchmarks/graphs
 # ignore additional files using core.excludesFile
 # https://git-scm.com/docs/gitignore
 .env
+
+cert.pem
+key.pem
+csr.pem
+public/apsiders
