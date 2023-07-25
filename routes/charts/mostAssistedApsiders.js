@@ -65,7 +65,7 @@ router.get("/mostAssistedApsiders", async (req, res, next) => {
 
     console.info("fin mostAssistedApsiders");
 
-    res.status(200).json({
+    return res.status(200).json({
         status: 'success',
         message: 'Registro actualizado correctamente',
         preview: rows,

@@ -60,7 +60,7 @@ router.post("/mark-attendance", async (req, res, next) => {
     }
 
     console.info("Fin de mark-attendance");
-    res.status(200).json({
+    return res.status(200).json({
         status: 'success',
         message: 'Registro creado correctamente'
     });

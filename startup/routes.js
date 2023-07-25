@@ -20,6 +20,15 @@ const getAsistenciasApsiders = require("../routes/apsiders/getAsistenciasApsider
 const getAsistenciaApsider = require("../routes/apsiders/getAsistenciaApsider");
 const bugReport = require("../routes/bugReport");
 
+//groups
+const getGroups = require("../routes/groups/getGroups");
+const apsidersWithoutGroup = require('../routes/groups/getApsidersWithoutGroup');
+const createGroup = require("../routes/groups/createGroup");
+const patchGroup = require("../routes/groups/patchGroup");
+const deleteGroup = require("../routes/groups/deleteGroup");
+const addApsidersToGroup = require("../routes/groups/addApsidersToGroup");
+const removeApsidersToGroup = require("../routes/groups/removeApsidersFromGroup");
+
 // charts
 const mostAssistedApsiders = require("../routes/charts/mostAssistedApsiders");
 const leastAssistedApsiders = require("../routes/charts/leastAssistedApsiders");
@@ -44,6 +53,14 @@ module.exports = function(app) {
     app.use(API_PREFIX, updateAssist);
     app.use(API_PREFIX, markAttendance);
     app.use(API_PREFIX, bugReport);
+
+    app.use(API_PREFIX, getGroups);
+    app.use(API_PREFIX, apsidersWithoutGroup);
+    app.use(API_PREFIX, auth, createGroup);
+    app.use(API_PREFIX, auth, patchGroup);
+    app.use(API_PREFIX, auth, deleteGroup);
+    app.use(API_PREFIX, auth, addApsidersToGroup);
+    app.use(API_PREFIX, auth, removeApsidersToGroup);
     
     app.use(API_PREFIX, auth, getApsidersDiscord);
     app.use(API_PREFIX, auth, mostAssistedApsiders);

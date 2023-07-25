@@ -1,17 +1,18 @@
-var multer = require("multer")
+let multer = require("multer")
 require('dotenv').config('./.env');
 
-custom_destination = process.env.DEFAULT_DESTINATION || '';
-var destination = "./public/" + custom_destination;
+let custom_destination = process.env.DEFAULT_DESTINATION || '';
+let destination = "./public/" + custom_destination;
 
 function fileFilter(req, file, cb) {
-    if (file.mimetype !== "image/jpg") {
+    console.log("filetype:",  file.mimetype)
+    if (file.mimetype !== "image/jpeg") {
         return cb(new Error("Solo se permiten archivos jpg"))
     }
     cb(null, true);
 }
 
-var storage = multer.diskStorage({
+let storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, destination)
     },
@@ -20,7 +21,7 @@ var storage = multer.diskStorage({
     }
 })
 
-var upload = multer({
+let upload = multer({
     fileFilter: fileFilter,
     storage: storage
 })

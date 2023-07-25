@@ -11,48 +11,100 @@ module.exports = async function(oldState, newState) {
     console.debug("newState", newState.channelId);
     console.debug("env", process.env.DAILY_CHANNEL_ID);
 
-    if (oldState.channelId !== null && newState.channelId !== null) {
-        if (oldState.channelId !== process.env.DAILY_CHANNEL_ID ||
-                newState.channelId !== process.env.DAILY_CHANNEL_ID) {
-            console.info("entreif no es daily");
-            return;
-        }
-    }
+    let dailyChannelsIds = await getDailyChannelsIds();
 
-    if(oldState.channelId === null) {
-        console.info('un usuario se ha unido al canal daily')
-        console.debug('usuario:', oldState.member.user.id,
-            oldState.member.user.username);
+    if (oldState.channelId !== null) await userLeft(oldState, dailyChannelsIds);
 
-        const apsider = await archiveApsider(pool, 0, oldState.member.user.id);
-
-        notifyAllClients(JSON.stringify({
-            action: "user-joined",
-            apsider: apsider
-        }));
-
-        if (apsider !== undefined) {
-            const success = await markAttendance(apsider);
-            if (success) {
-                console.info('asistencia marcada para', apsider.name, apsider.id);
-            }else{
-                console.error('error al marcar asistencia para', apsider.name, apsider.id);
-            }
-        }
-
-
-    } else if (newState.channelId === null) {
-        console.info('un usuario ha dejado el canal daily')
-        console.debug('usuario:', newState.member.user.id,
-            newState.member.user.username);
-
-        const apsider = await archiveApsider(pool, 1, newState.member.user.id);
-        notifyAllClients(JSON.stringify({
-            action: "user-left",
-            apsider: apsider
-        }));
-    }
+    if (newState.channelId !== null) await userJoined(newState, dailyChannelsIds);
     console.info("fin VoiceStateUpdate");
+}
+
+async function userLeft(oldState, dailyChannelsIds) {
+    if (!dailyChannelsIds.some(obj => obj.channel_id === oldState.channelId)) {
+        console.log("salio de un canal que no es daily");
+        return;
+    }
+
+    console.info('un usuario ha dejado el canal daily')
+    console.debug('usuario:', oldState.member.user.id,
+        oldState.member.user.username);
+
+    const apsider = await getApsider(pool, oldState.member.user.id);
+
+    if (!apsider) {
+        console.log(
+            'Usuario que salio de la daily no se encuentra en base de datos');
+        return;
+    }
+
+    const channelID = dailyChannelsIds.find(obj => obj.channel_id === oldState.channelId).id;
+    apsider.channel_id = channelID;
+
+    if (apsider.grupo_id  !== channelID) {
+        console.log("salio de un canal que no le corresponde");
+        return;
+    };
+
+    await archiveApsider(pool, 1, apsider.id);
+    notifyAllClients(JSON.stringify({
+        action: "user-left",
+        apsider: apsider
+    }));
+}
+
+async function userJoined(newState, dailyChannelsIds) {
+
+    if (!dailyChannelsIds.some(obj => obj.channel_id === newState.channelId)) {
+        console.log("entro a un canal que no es daily");
+        return;
+    }
+
+    console.info('un usuario se ha unido al canal daily')
+    console.debug('usuario:', newState.member.user.id,
+        newState.member.user.username);
+
+    const apsider = await getApsider(pool, newState.member.user.id);
+
+    if (!apsider) {
+        console.log(
+            'Usuario que ingreso a la daily no se encuentra en base de datos');
+        return;
+    }
+
+    const channelID = dailyChannelsIds.find(
+        obj => obj.channel_id === newState.channelId).id;
+    apsider.channel_id = channelID; // retorna el id de db del canal ingresado
+
+    if (apsider.grupo_id  !== channelID) {
+        console.log("entro a un canal que no le corresponde");
+        return;
+    } 
+
+    await archiveApsider(pool, 0, apsider.id);
+
+    notifyAllClients(JSON.stringify({
+        action: "user-joined",
+        apsider: apsider
+    }));
+
+    if (apsider !== undefined) {
+        const success = await markAttendance(apsider);
+        if (success) {
+            console.info('asistencia marcada para', apsider.name, apsider.id);
+        }else{
+            console.error('error al marcar asistencia para', apsider.name, apsider.id);
+        }
+    }
+}
+
+async function getApsider(pool, user_id) {
+    const [selectResult] = await pool.query(
+        "SELECT * FROM apsiders WHERE id = ?",
+        [user_id]
+    );
+    console.debug("usuario obtenido", selectResult);
+
+    return selectResult[0];
 }
 
 async function archiveApsider(pool, state, user_id, callback) {
@@ -62,16 +114,9 @@ async function archiveApsider(pool, state, user_id, callback) {
     );
     console.debug("usuario archived updated",
         state, updateResult.affectedRows);
-    
-    const [selectResult] = await pool.query(
-        "SELECT * FROM apsiders WHERE id = ?",
-        [user_id]
-    );
-    console.debug("usuario obtenido", selectResult);
-    return selectResult[0];
 }
 
-async function markAttendance(apsider){
+async function markAttendance(apsider) {
     console.info("Inicio de mark-attendance");
 
     const APSIDER_ID = apsider.id;
@@ -118,4 +163,12 @@ async function markAttendance(apsider){
 
     console.info("Fin de mark-attendance");
     return true
+}
+
+async function getDailyChannelsIds() {
+    const [channelsIds] = await pool.query(
+        "SELECT id, channel_id FROM grupos"
+    );
+    console.debug("daily_channels", channelsIds);
+    return channelsIds
 }

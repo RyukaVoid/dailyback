@@ -52,7 +52,7 @@ router.get("/howManyAssists", async (req, res, next) => {
 
     console.info("fin arriveOnTime");
 
-    res.status(200).json({
+    return res.status(200).json({
         status: 'success',
         message: 'Datos obtenido correctamente',
         preview: rows,

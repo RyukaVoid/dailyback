@@ -79,7 +79,7 @@ router.get("/asistenciasApsiders", async (req, res, next) => {
         }
     })
 
-    res.status(200).json({
+    return res.status(200).json({
         status: 'success',
         message: 'Registros obtenidos correctamente',
         data: rows,

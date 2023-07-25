@@ -1,7 +1,7 @@
 const { pool } = require('../../dbConnector');
 const express = require("express");
 const router = express.Router();
-var upload = require("../../middleware/multer")
+let upload = require("../../middleware/multer")
 
 router.post("/apsider", upload.single("avatar"), async (req, res, next) => {
     console.info("Inicio de create_apsider");
@@ -78,7 +78,7 @@ router.post("/apsider", upload.single("avatar"), async (req, res, next) => {
     }
 
     console.info("Fin de create_apsider");
-    res.status(200).json({
+    return res.status(200).json({
         status: 'success',
         message: 'Registro creado correctamente'
     });

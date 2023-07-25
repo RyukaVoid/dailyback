@@ -44,7 +44,7 @@ router.delete("/apsider/:id", async (req, res, next) => {
 
     console.info("fin delete_apsider");
 
-    res.status(200).json({
+    return res.status(200).json({
         status: 'success',
         message: 'Registro actualizado correctamente'
     });

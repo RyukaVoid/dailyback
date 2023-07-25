@@ -36,7 +36,7 @@ router.post("/update_assist", async (req, res) => {
     }));
 
     console.info("Fin update_assist");
-    res.status(200).json({
+    return res.status(200).json({
         status: "success",
         result: rows
     })

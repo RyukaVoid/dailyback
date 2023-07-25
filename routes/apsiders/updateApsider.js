@@ -154,7 +154,7 @@ router.patch("/apsider", upload.single("avatar"), async (req, res, next) => {
     }
 
     console.info("Fin de update_apsider")
-    res.status(200).json({
+    return res.status(200).json({
         status: 'success',
         message: 'Apsider actualizado correctamente'
     });

@@ -72,7 +72,7 @@ router.get("/notArriveOnTime", async (req, res, next) => {
     
     console.info("fin notArriveOnTime");
 
-    res.status(200).json({
+    return res.status(200).json({
         status: 'success',
         message: 'Datos obtenido correctamente',
         data: rows

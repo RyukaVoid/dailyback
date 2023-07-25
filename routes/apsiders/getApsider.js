@@ -56,7 +56,7 @@ router.get("/apsider/:id", async (req, res, next) => {
 
     console.info("fin archive_apsider");
 
-    res.status(200).json({
+    return res.status(200).json({
         status: 'success',
         message: 'Registro actualizado correctamente',
         data: rows

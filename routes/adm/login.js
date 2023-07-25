@@ -84,7 +84,7 @@ router.post("/adm/login", async (req, res, next) => {
         Buffer.from(token.split('.')[1], 'base64').toString());
     console.info("fin adm_login");
 
-    res.status(200).json({
+    return res.status(200).json({
         status: 'success',
         message: 'Inicio de sesion exitoso',
         token: token,
